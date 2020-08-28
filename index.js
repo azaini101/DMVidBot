@@ -1,5 +1,4 @@
 const { Autohook } = require('twitter-autohook');
-const nodemailer = require('nodemailer');
 require('dotenv').config();
 const util = require('util');
 const request = require('request');
@@ -7,6 +6,7 @@ const fs = require('fs');
 const { send } = require('process');
 const post = util.promisify(request.post);
 const { http, https } = require('follow-redirects');
+const client = require('twilio')(process.env.TWILIO_ACCOUNTSID, process.env.TWILIO_AUTH_TOKEN); 
 
 const oAuthConfig = {
   token: process.env.TWITTER_ACCESS_TOKEN,
@@ -40,7 +40,7 @@ async function sendMessage(message, auth) {
             recipient_id: message.message_create.sender_id,
           },
           message_data: {
-            text: `An email has been sent!`,
+            text: `The video has been sent to your WhatsApp!`,
           },
         },
       },
@@ -66,10 +66,10 @@ async function sayHi(event) {
 
   const senderScreenName = event.users[message.message_create.sender_id].screen_name;
   const senderMessage = message.message_create.message_data.text;
-  const email = senderMessage.substring(0, senderMessage.indexOf(" "))
+  const phone = senderMessage.substring(0, senderMessage.indexOf(" "))
   const t_link = senderMessage.substring(senderMessage.indexOf("http"))
   console.log(t_link)
-  console.log(email)
+  console.log(phone)
   console.log(`${senderScreenName} says ${senderMessage}`);
   await markAsRead(message.message_create.id, message.message_create.sender_id, oAuthConfig);
   https.get(t_link, response => {
@@ -81,7 +81,6 @@ async function sayHi(event) {
       var body = Buffer.concat(chunks);
       var new_link = body.toString();
       new_link = new_link.substring(new_link.indexOf('https://twitter.com'))
-      console.log(new_link)
       new_link = new_link.substring(0, new_link.indexOf('"'))
       console.log(new_link)
 
@@ -104,47 +103,23 @@ async function sayHi(event) {
           link = link.substring(link.indexOf("https://video.twimg.com"));
           link = link.substring(0, link.indexOf(`"`));
           console.log(link);
-          const file = fs.createWriteStream(`${senderScreenName}.mp4`);
-          const request = https.get(link, function(response) {
-            response.pipe(file);
-          });
-          let transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-              user: process.env.GMAIL_EMAIL,
-              pass: process.env.GMAIL_PASS
-            }
-          });
-          
-          let mailOptions = {
-            from: 'azainidev@gmail.com',
-            to: email,
-            subject: 'test',
-            text: 'test',
-            attachments: [
-              {filename: `${senderScreenName}.mp4`, path: `./${senderScreenName}.mp4`}
-            ]
-          }
-    
-          transporter.sendMail(mailOptions, async function(err, info){
-            if(err){
-              console.log('Error: ', err)
-            }
-            else{
-              console.log('Email sent.')
-              //await sendMessage(message, oAuthConfig);
-            }
-          })
+          client.messages 
+            .create({ 
+                from: 'whatsapp:+14155238886',       
+                to: `whatsapp:${phone}`,
+                mediaUrl: link
+              }) 
+            .then(message => console.log(message.sid)) 
+            .done();
         });
         res.on("error", function (error) {
           console.error(error);
         });
       });
-      // fs.unlinkSync(`./${senderScreenName}.mp4`);
       await req.end();
+      //await sendMessage(message, oAuthConfig)
     });
   }).on('error', err => {
-    //console.error(err);
   });
 }
 
