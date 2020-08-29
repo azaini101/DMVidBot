@@ -127,7 +127,7 @@ async function responseToDM(event) {
     }).on('error', err => {
     });
   }
-  else if(senderMessage === "help"){
+  else if(senderMessage.toLowerCase() === "help"){
     await sendMessage(message, oAuthConfig, `There are 3 main steps to get started with DMVidBot! \n
     1) Add the following number as a contact on WhatsApp: +14155238886\n
     2) On WhatsApp, send that contact the following message: join continent-complete\n
