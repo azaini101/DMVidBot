@@ -6,7 +6,7 @@ const fs = require('fs');
 const { send } = require('process');
 const post = util.promisify(request.post);
 const { http, https } = require('follow-redirects');
-const client = require('twilio')(process.env.TWILIO_ACCOUNTSID, process.env.TWILIO_AUTH_TOKEN); 
+const client = require('twilio')(process.env.TWILIO_ACCOUNTSID, process.env.TWILIO_AUTH_TOKEN);
 
 const oAuthConfig = {
   token: process.env.TWITTER_ACCESS_TOKEN,
@@ -28,7 +28,7 @@ async function markAsRead(messageId, senderId, auth) {
   await post(requestConfig);
 }
 
-async function sendMessage(message, auth) {
+async function sendMessage(message, auth, reply) {
   const requestConfig = {
     url: 'https://api.twitter.com/1.1/direct_messages/events/new.json',
     oauth: auth,
@@ -40,7 +40,7 @@ async function sendMessage(message, auth) {
             recipient_id: message.message_create.sender_id,
           },
           message_data: {
-            text: `The video has been sent to your WhatsApp!`,
+            text: reply,
           },
         },
       },
@@ -49,7 +49,9 @@ async function sendMessage(message, auth) {
   await post(requestConfig);
 }
 
-async function sayHi(event) {
+let handleToNumber = {};
+async function responseToDM(event) {
+  await markAsRead(message.message_create.id, message.message_create.sender_id, oAuthConfig);
   if (!event.direct_message_events) {
     return;
   }
@@ -66,61 +68,77 @@ async function sayHi(event) {
 
   const senderScreenName = event.users[message.message_create.sender_id].screen_name;
   const senderMessage = message.message_create.message_data.text;
-  const phone = senderMessage.substring(0, senderMessage.indexOf(" "))
-  const t_link = senderMessage.substring(senderMessage.indexOf("http"))
-  console.log(t_link)
-  console.log(phone)
   console.log(`${senderScreenName} says ${senderMessage}`);
-  await markAsRead(message.message_create.id, message.message_create.sender_id, oAuthConfig);
-  https.get(t_link, response => {
-    var chunks = [];
-    response.on('data', chunk => {
-      chunks.push(chunk);
-    });
-    response.on("end", async function (chunk) {
-      var body = Buffer.concat(chunks);
-      var new_link = body.toString();
-      new_link = new_link.substring(new_link.indexOf('https://twitter.com'))
-      new_link = new_link.substring(0, new_link.indexOf('"'))
-      console.log(new_link)
 
-
-      var options = {
-        'method': 'POST',
-        'hostname': 'www.savetweetvid.com',
-        'path': `/downloader?url=${new_link}`,
-      };
-    
-      var req = https.request(options, async function (res) {
-        var chunks = [];
-        res.on("data", function (chunk) {
-          chunks.push(chunk);
-        });
-    
-        res.on("end", function (chunk) {
-          var body = Buffer.concat(chunks);
-          var link = body.toString();
-          link = link.substring(link.indexOf("https://video.twimg.com"));
-          link = link.substring(0, link.indexOf(`"`));
-          console.log(link);
-          client.messages 
-            .create({ 
-                from: 'whatsapp:+14155238886',       
-                to: `whatsapp:${phone}`,
-                mediaUrl: link
-              }) 
-            .then(message => console.log(message.sid)) 
-            .done();
-        });
-        res.on("error", function (error) {
-          console.error(error);
-        });
+  // If user is setting their phone number
+  if (senderMessage[0] === "!") {
+    handleToNumber[senderScreenName] = senderMessage.substring(1);
+    await sendMessage(message, oAuthConfig, `Saved ${handleToNumber[senderScreenName]} for ${senderScreenName}!`);
+  } else if (senderMessage.substring(0, 4) === "http") {
+    let t_link = senderMessage;
+    https.get(t_link, response => {
+      var chunks = [];
+      response.on('data', chunk => {
+        chunks.push(chunk);
       });
-      await req.end();
-      //await sendMessage(message, oAuthConfig)
+      response.on("end", async function (chunk) {
+        var body = Buffer.concat(chunks);
+        var new_link = body.toString();
+        new_link = new_link.substring(new_link.indexOf('https://twitter.com'))
+        new_link = new_link.substring(0, new_link.indexOf('"'))
+        console.log(new_link)
+
+
+        var options = {
+          'method': 'POST',
+          'hostname': 'www.savetweetvid.com',
+          'path': `/downloader?url=${new_link}`,
+        };
+
+        var req = https.request(options, async function (res) {
+          var chunks = [];
+          res.on("data", function (chunk) {
+            chunks.push(chunk);
+          });
+
+          res.on("end", function (chunk) {
+            var body = Buffer.concat(chunks);
+            var link = body.toString();
+            link = link.substring(link.indexOf("https://video.twimg.com"));
+            link = link.substring(0, link.indexOf(`"`));
+            console.log(link);
+            client.messages
+              .create({
+                from: 'whatsapp:+14155238886',
+                to: `whatsapp:${handleToNumber[senderScreenName]}`,
+                mediaUrl: link
+              })
+              .then(async res => {
+                await sendMessage(message, oAuthConfig, `Your video has been sent to WhatsApp at ${handleToNumber[senderScreenName]}!`);
+              })
+              .done();
+          });
+          res.on("error", function (error) {
+            console.error(error);
+          });
+        });
+        await req.end();
+      });
+    }).on('error', err => {
     });
-  }).on('error', err => {
-  });
+  }
+  else if(senderMessage === "help"){
+    await sendMessage(message, oAuthConfig, `There are 3 main steps to get started with DMVidBot! \n
+    1) Add the following number as a contact on WhatsApp: +14155238886\n
+    2) On WhatsApp, send that contact the following message: join continent-complete\n
+    3) Add your number to our contact list by DM'ing us ! directly followed by your number\n
+    ****Steps 1-3 only need to be done once!***\n
+    4) Send us whatever tweet with a video you'd like to save, and we'll send that over to your Whatsapp!\n
+    One final note: make sure you send the actual tweet with the video, not a quote of the tweet`);
+  }
+  else {
+    await sendMessage(message, oAuthConfig, `Type "help" to learn more.`);
+  }
 }
 
 (async start => {
@@ -128,7 +146,7 @@ async function sayHi(event) {
     const webhook = new Autohook();
     webhook.on('event', async event => {
       if (event.direct_message_events) {
-        await sayHi(event);
+        await responseToDM(event);
       }
     });
     // Removes existing webhooks
