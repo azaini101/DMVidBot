@@ -51,12 +51,12 @@ async function sendMessage(message, auth, reply) {
 
 let handleToNumber = {};
 async function responseToDM(event) {
-  await markAsRead(message.message_create.id, message.message_create.sender_id, oAuthConfig);
   if (!event.direct_message_events) {
     return;
   }
 
   const message = event.direct_message_events.shift();
+  await markAsRead(message.message_create.id, message.message_create.sender_id, oAuthConfig);
   if (typeof message === 'undefined' || typeof message.message_create === 'undefined') {
     return;
   }
