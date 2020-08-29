@@ -6,6 +6,7 @@ const fs = require('fs');
 const { send } = require('process');
 const post = util.promisify(request.post);
 const { http, https } = require('follow-redirects');
+let cheerio = require('cheerio')
 const client = require('twilio')(process.env.TWILIO_ACCOUNTSID, process.env.TWILIO_AUTH_TOKEN);
 
 const oAuthConfig = {
@@ -102,22 +103,27 @@ async function responseToDM(event) {
           });
 
           res.on("end", function (chunk) {
-            var body = Buffer.concat(chunks);
-            var link = body.toString();
-            link = link.substring(link.indexOf("https://video.twimg.com"));
-            link = link.substring(0, link.indexOf(`"`));
-            console.log(link);
-            client.messages
-              .create({
-                from: 'whatsapp:+14155238886',
-                to: `whatsapp:${handleToNumber[senderScreenName]}`,
-                mediaUrl: link
-              })
-              .then(async res => {
-                await sendMessage(message, oAuthConfig, `Your video has been sent to WhatsApp at ${handleToNumber[senderScreenName]}!`);
-              })
-              .catch(err => console.log(err))
-              .done();
+            var body = Buffer.concat(chunks).toString();
+            let $ = cheerio.load(body);
+            
+            let links = [];
+
+            $('table').each((i, e) => {
+              console.log(i, e);
+            })
+
+            // console.log(link);
+            // client.messages
+            //   .create({
+            //     from: 'whatsapp:+14155238886',
+            //     to: `whatsapp:${handleToNumber[senderScreenName]}`,
+            //     mediaUrl: link
+            //   })
+            //   .then(async res => {
+            //     await sendMessage(message, oAuthConfig, `Your video has been sent to WhatsApp at ${handleToNumber[senderScreenName]}!`);
+            //   })
+            //   .catch(err => console.log(err))
+            //   .done();
           });
           res.on("error", function (error) {
             console.error(error);
