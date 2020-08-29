@@ -111,7 +111,7 @@ async function responseToDM(event) {
               .create({
                 from: 'whatsapp:+14155238886',
                 to: `whatsapp:${handleToNumber[senderScreenName]}`,
-                body: link
+                mediaUrl: link
               })
               .then(async res => {
                 await sendMessage(message, oAuthConfig, `Your video has been sent to WhatsApp at ${handleToNumber[senderScreenName]}!`);
@@ -125,6 +125,7 @@ async function responseToDM(event) {
         await req.end();
       });
     }).on('error', err => {
+      console.log(err);
     });
   }
   else if(senderMessage.toLowerCase() === "help"){
