@@ -116,6 +116,7 @@ async function responseToDM(event) {
               .then(async res => {
                 await sendMessage(message, oAuthConfig, `Your video has been sent to WhatsApp at ${handleToNumber[senderScreenName]}!`);
               })
+              .catch(err => console.log(err))
               .done();
           });
           res.on("error", function (error) {
