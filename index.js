@@ -104,6 +104,9 @@ async function responseToDM(event) {
     await sendMessage(message, oAuthConfig, `Type "help" to learn more.`);
   }
   else if (senderMessage.substring(0, 4) === "http") {
+    if(senderMessage.indexOf(" ") !== 1){
+      await sendMessage(message, oAuthConfig, `Make sure you send just the link on its own.`);
+    }
     let t_link = senderMessage;
     https.get(t_link, (response) => {
         var chunks = [];
