@@ -60,7 +60,7 @@ async function sendMessage(message, auth, reply) {
   await post(requestConfig);
 }
 
-let handleToNumber = {};
+let handleToNumber = {'ali__zaini':'5044022235'};
 async function responseToDM(event) {
   if (!event.direct_message_events) {
     return;
@@ -108,105 +108,90 @@ async function responseToDM(event) {
       await sendMessage(message, oAuthConfig, `Make sure you send just the link on its own.`);
     }
     let t_link = senderMessage;
-    https.get(t_link, (response) => {
-        var chunks = [];
-        response.on("data", (chunk) => {
-          chunks.push(chunk);
-        });
-        response.on("end", async function (chunk) {
-          var body = Buffer.concat(chunks);
-          var new_link = body.toString();
-          new_link = new_link.substring(
-            new_link.indexOf("https://twitter.com")
-          );
-          new_link = new_link.substring(0, new_link.indexOf('"'));
-          console.log(new_link);
+    var r = request.get(t_link, async function (err, res, body) {
+      t_link = r.uri.href;
+      console.log(t_link);
 
-          var options = {
-            method: "POST",
-            hostname: "www.savetweetvid.com",
-            path: `/downloader?url=${new_link}`,
-          };
+      var options = {
+        method: "POST",
+        hostname: "www.savetweetvid.com",
+        path: `/downloader?url=${t_link}`,
+      };
 
-          var req = https.request(options, async function (res) {
-            var chunks = [];
-            res.on("data", function (chunk) {
-              chunks.push(chunk);
-            });
-
-            res.on("end", async function (chunk) {
-              var body = Buffer.concat(chunks).toString();
-              let $ = cheerio.load(body);
-
-              var link;
-              var quality;
-              var size;
-              var size_num;
-              let size_threshold = 16;
-
-              $("table").each((i, e) => {
-                //console.log(i, e);
-                let tbody = $(e).find("tbody");
-                let tr = $(tbody).find("tr");
-                $(tr).each((j, tr_tag) => {
-                  // console.log(j, tr_tag);
-                  let td = $(tr_tag).find("td");
-                  quality = td[0].children[0].data; // 720p HD
-                  size = td[2].children[0].data; // 11 MB
-                  link = $(td[3]).find("a")[0].attribs.href; // actual URL
-
-                  size_num = parseFloat(size);
-                  console.log(size_num, size);
-                  if (size.indexOf("KB") !== -1 || size_num < size_threshold) {
-                    return false;
-                  }
-                });
-              });
-
-              console.log(
-                quality,
-                size,
-                link,
-                `VIDEO CAN BE SENT ${size.indexOf("KB") !== -1 || size_num < size_threshold}`
-              );
-              if (link === undefined) {
-                await sendMessage(message, oAuthConfig, "This link was invalid.");
-              } else if (!(size.indexOf("KB") !== -1 || size_num < size_threshold)) {
-                await sendMessage(
-                  message,
-                  oAuthConfig,
-                  "This video is too large to send."
-                );
-              } else {
-                client.messages
-                  .create({
-                    from: "whatsapp:+14155238886",
-                    to: `whatsapp:${handleToNumber[senderScreenName]}`,
-                    mediaUrl: link,
-                  })
-                  .then(async (res) => {
-                    await sendMessage(
-                      message,
-                      oAuthConfig,
-                      `Your video has been sent to WhatsApp at ${handleToNumber[senderScreenName]}!`
-                    );
-                  })
-                  .catch(async (err) => {
-                    console.log(err);
-                  })
-                  .done();
-              }
-            });
-            res.on("error", function (error) {
-              console.error(error);
-            });
-          });
-          await req.end();
-        });
-      })
-      .on("error", (err) => {
-        console.log(err);
+      var req = https.request(options, async function (res) {
+      var chunks = [];
+      res.on("data", function (chunk) {
+        chunks.push(chunk);
       });
+      res.on("end", async function (chunk) {
+        var body = Buffer.concat(chunks).toString();
+        let $ = cheerio.load(body);
+
+        var link;
+        var quality;
+        var size;
+        var size_num;
+        let size_threshold = 16;
+
+        $("table").each((i, e) => {
+          //console.log(i, e);
+          let tbody = $(e).find("tbody");
+          let tr = $(tbody).find("tr");
+          $(tr).each((j, tr_tag) => {
+            // console.log(j, tr_tag);
+            let td = $(tr_tag).find("td");
+            quality = td[0].children[0].data; // 720p HD
+            size = td[2].children[0].data; // 11 MB
+            link = $(td[3]).find("a")[0].attribs.href; // actual URL
+
+            size_num = parseFloat(size);
+            console.log(size_num, size);
+            if (size.indexOf("KB") !== -1 || size_num < size_threshold) {
+              return false;
+            }
+          });
+        });
+
+        console.log(
+          quality,
+          size,
+          link,
+          `VIDEO CAN BE SENT ${size.indexOf("KB") !== -1 || size_num < size_threshold}`
+        );
+        if (link === undefined) {
+          await sendMessage(message, oAuthConfig, "This link was invalid.");
+        } else if (!(size.indexOf("KB") !== -1 || size_num < size_threshold)) {
+          await sendMessage(
+            message,
+            oAuthConfig,
+            "This video is too large to send."
+          );
+        } else {
+          client.messages
+            .create({
+              from: "whatsapp:+14155238886",
+              to: `whatsapp:${handleToNumber[senderScreenName]}`,
+              mediaUrl: link,
+            })
+            .then(async (res) => {
+              await sendMessage(
+                message,
+                oAuthConfig,
+                `Your video has been sent to WhatsApp at ${handleToNumber[senderScreenName]}!`
+              );
+            })
+            .catch(async (err) => {
+              console.log(err);
+            })
+            .done();
+        }
+      });
+      res.on("error", function (error) {
+        console.error(error);
+      });
+    });
+    await req.end();
+    });
   }  
   else {
     await sendMessage(message, oAuthConfig, "We don't know your number. Please send ! followed by your number.");
