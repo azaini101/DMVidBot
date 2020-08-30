@@ -81,7 +81,7 @@ async function responseToDM(event) {
   
   if (senderMessage[0] === "!") { // If user is setting their phone number
     handleToNumber[senderScreenName] = senderMessage.substring(1);
-    jsonfile.writeFileSync(file, handleToNumbers)
+    jsonfile.writeFileSync(file, handleToNumber)
     await sendMessage(message, oAuthConfig, `Saved ${handleToNumber[senderScreenName]} for ${senderScreenName}!`);
   }
   else if (senderMessage.toLowerCase() === "help") { //if user has typed the help command
