@@ -67,27 +67,18 @@ async function responseToDM(event) {
   }
 
   const message = event.direct_message_events.shift();
-  await markAsRead(
-    message.message_create.id,
-    message.message_create.sender_id,
-    oAuthConfig
-  );
-  if (
-    typeof message === "undefined" ||
-    typeof message.message_create === "undefined"
-  ) {
+  await markAsRead(message.message_create.id, message.message_create.sender_id, oAuthConfig);
+
+  if (typeof message === "undefined" || typeof message.message_create === "undefined") {
     return;
   }
 
-  if (
-    message.message_create.sender_id ===
-    message.message_create.target.recipient_id
-  ) {
+  if (message.message_create.sender_id === message.message_create.target.recipient_id) 
+  {
     return;
   }
 
-  const senderScreenName =
-    event.users[message.message_create.sender_id].screen_name;
+  const senderScreenName = event.users[message.message_create.sender_id].screen_name;
   const senderMessage = message.message_create.message_data.text;
   console.log(`${senderScreenName} says ${senderMessage}`);
 
@@ -99,16 +90,13 @@ async function responseToDM(event) {
       oAuthConfig,
       `Saved ${handleToNumber[senderScreenName]} for ${senderScreenName}!`
     );
-  } else if (handleToNumber[senderScreenName] === undefined) {
-    await sendMessage(
-      message,
-      oAuthConfig,
-      "We don't know your number. Please send ! followed by your number."
-    );
-  } else if (senderMessage.substring(0, 4) === "http") {
+  } 
+  else if (handleToNumber[senderScreenName] === undefined) {
+    await sendMessage(message, oAuthConfig, `Type "help" to learn more.`);
+  }
+  else if (senderMessage.substring(0, 4) === "http") {
     let t_link = senderMessage;
-    https
-      .get(t_link, (response) => {
+    https.get(t_link, (response) => {
         var chunks = [];
         response.on("data", (chunk) => {
           chunks.push(chunk);
@@ -207,20 +195,18 @@ async function responseToDM(event) {
       .on("error", (err) => {
         console.log(err);
       });
-  } else if (senderMessage.toLowerCase() === "help") {
-    await sendMessage(
-      message,
-      oAuthConfig,
-      `There are 3 main steps to get started with DMVidBot! \n
+  } 
+  else if (senderMessage.toLowerCase() === "help") {
+    await sendMessage(message, oAuthConfig, `There are 3 main steps to get started with DMVidBot! \n
     1) Add the following number as a contact on WhatsApp: +14155238886\n
     2) On WhatsApp, send that contact the following message: join continent-complete\n
     3) Add your number to our contact list by DM'ing us ! directly followed by your number\n
     ****Steps 1-3 only need to be done once!***\n
     4) Send us whatever tweet with a video you'd like to save, and we'll send that over to your Whatsapp!\n
-    One final note: make sure you send the actual tweet with the video, not a quote of the tweet`
-    );
-  } else {
-    await sendMessage(message, oAuthConfig, `Type "help" to learn more.`);
+    One final note: make sure you send the actual tweet with the video, not a quote of the tweet`);
+  } 
+  else {
+    await sendMessage(message, oAuthConfig, "We don't know your number. Please send ! followed by your number.");
   }
 }
 
