@@ -91,7 +91,7 @@ async function responseToDM(event) {
     await sendMessage(message, oAuthConfig, `Saved ${handleToNumber[senderScreenName]} for ${senderScreenName}!`);
   }
   else if (senderMessage.toLowerCase() === "help") { //if user has typed the help command
-    await sendMessage(message, oAuthConfig, `There are 3 main steps to get started with DMVidBot!
+    await sendMessage(message, oAuthConfig, `There are 4 main steps to get started with DMVidBot!
     \n1) Add the following number as a contact on WhatsApp: +14155238886
     \n2) On WhatsApp, send that contact the following message: join continent-complete
     \n3) Add your number to our contact list by DM'ing us ! directly followed by your number
