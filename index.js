@@ -1,18 +1,11 @@
-const {
-  Autohook
-} = require("twitter-autohook");
+const { Autohook } = require("twitter-autohook");
 require("dotenv").config();
 const util = require("util");
 const request = require("request");
-const fs = require("fs");
-const {
-  send
-} = require("process");
+const jsonfile = require('jsonfile')
+const file = 'data.json'
 const post = util.promisify(request.post);
-const {
-  http,
-  https
-} = require("follow-redirects");
+const { https } = require("follow-redirects");
 let cheerio = require("cheerio");
 const client = require("twilio")(
   process.env.TWILIO_ACCOUNTSID,
@@ -60,7 +53,7 @@ async function sendMessage(message, auth, reply) {
   await post(requestConfig);
 }
 
-let handleToNumber = {};
+let handleToNumber = jsonfile.readFileSync(file);
 async function responseToDM(event) {
   //if event is not a direct message
   if (!event.direct_message_events) {
@@ -88,6 +81,7 @@ async function responseToDM(event) {
   
   if (senderMessage[0] === "!") { // If user is setting their phone number
     handleToNumber[senderScreenName] = senderMessage.substring(1);
+    jsonfile.writeFileSync(file, handleToNumbers)
     await sendMessage(message, oAuthConfig, `Saved ${handleToNumber[senderScreenName]} for ${senderScreenName}!`);
   }
   else if (senderMessage.toLowerCase() === "help") { //if user has typed the help command
