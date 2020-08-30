@@ -151,8 +151,6 @@ async function responseToDM(event) {
             }
           });
         });
-        console.log(quality,size,link,`VIDEO CAN BE SENT ${size.indexOf("KB") !== -1 || size_num < size_threshold}`);
-        
         if (link === undefined) { //if link was not a twitter link with a video
           await sendMessage(message, oAuthConfig, "This link was invalid.");
         } 
@@ -160,6 +158,7 @@ async function responseToDM(event) {
           await sendMessage(message, oAuthConfig, "This video is too large to send.");
         } 
         else { //if video can be sent to Whatsapp
+          console.log(quality,size,link,`VIDEO CAN BE SENT ${size.indexOf("KB") !== -1 || size_num < size_threshold}`);
           client.messages
             .create({
               from: "whatsapp:+14155238886",
@@ -183,7 +182,7 @@ async function responseToDM(event) {
     });
   }  
   else {
-    await sendMessage(message, oAuthConfig, "We don't know your number. Please send ! followed by your number.");
+    await sendMessage(message, oAuthConfig, `Not sure what this means. Type "help" to learn more.`);
   }
 }
 
