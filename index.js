@@ -60,7 +60,7 @@ async function sendMessage(message, auth, reply) {
   await post(requestConfig);
 }
 
-let handleToNumber = {'ali__zaini':'5044022235'};
+let handleToNumber = {};
 async function responseToDM(event) {
   if (!event.direct_message_events) {
     return;
@@ -152,12 +152,7 @@ async function responseToDM(event) {
           });
         });
 
-        console.log(
-          quality,
-          size,
-          link,
-          `VIDEO CAN BE SENT ${size.indexOf("KB") !== -1 || size_num < size_threshold}`
-        );
+        console.log(quality,size,link,`VIDEO CAN BE SENT ${size.indexOf("KB") !== -1 || size_num < size_threshold}`);
         if (link === undefined) {
           await sendMessage(message, oAuthConfig, "This link was invalid.");
         } else if (!(size.indexOf("KB") !== -1 || size_num < size_threshold)) {
