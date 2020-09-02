@@ -93,13 +93,16 @@ async function responseToDM(event) {
     \n4) Send us whatever tweet with a video you'd like to save, and we'll send that over to your Whatsapp!
     \nOne final note: make sure you send the actual tweet with the video, not a quote of the tweet`);
   }
-  else if (handleToNumber[senderScreenName] === undefined) { //if user's number has not been added
-    await sendMessage(message, oAuthConfig, `Not sure what this means. Type "help" to learn more.`);
-  }
   else if (senderMessage.substring(0, 4) === "http") { //if user has sent a link
+
+    if (handleToNumber[senderScreenName] === undefined) { //if user's number has not been added
+      await sendMessage(message, oAuthConfig, `We don't know your number yet. Type ! directly followed by your number. (ex: !+13131234567)`);
+      return;
+    }
+
     if(senderMessage.indexOf(" ") !== -1){ //if user has sent more than just the link itself
       await sendMessage(message, oAuthConfig, `Make sure you send just the tweet on its own.`);
-      return
+      return;
     }
     let t_link = senderMessage;
     /*This get function returns the full url of shortened twitter links*/
@@ -140,15 +143,16 @@ async function responseToDM(event) {
             link = $(td[3]).find("a")[0].attribs.href; // video URL
             size_num = parseFloat(size);
             //if the size is less than the size threshold (maximum file size that can be sent via Twilio's Sandbox), continue
-            if (size.indexOf("KB") !== -1 || size.indexOf(" B ") !== -1 || size_num < size_threshold) {
+            if (size.indexOf("KB") !== -1 || size.indexOf(" B") !== -1 || size_num < size_threshold) {
               return false;
             }
           });
         });
+        console.log(quality,size,link,`VIDEO CAN BE SENT ${size.indexOf("KB") !== -1 || size.indexOf(" B") !== -1 || size_num < size_threshold}`);
         if (link === undefined) { //if link was not a twitter link with a video
           await sendMessage(message, oAuthConfig, "This link was invalid.");
         } 
-        else if (!(size.indexOf("KB") !== -1 || size.indexOf(" B ") !== -1 || size_num < size_threshold)) { //if all 3 file sizes were too large to send
+        else if (!(size.indexOf("KB") !== -1 || size.indexOf(" B") !== -1 || size_num < size_threshold)) { //if all 3 file sizes were too large to send
           await sendMessage(message, oAuthConfig, "This video is too large to send.");
         } 
         else { //if video can be sent to Whatsapp
