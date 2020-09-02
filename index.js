@@ -1,6 +1,6 @@
 const { Autohook } = require("twitter-autohook");
 require("dotenv").config();
-require('newrelic');git 
+require('newrelic');
 const util = require("util");
 const request = require("request");
 const jsonfile = require('jsonfile')
