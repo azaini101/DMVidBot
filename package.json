@@ -14,6 +14,7 @@
     "dotenv": "^8.2.0",
     "follow-redirects": "^1.13.0",
     "jsonfile": "^6.0.1",
+    "newrelic": "^6.13.0",
     "twilio": "^3.49.0",
     "twitter-autohook": "^1.7.2"
   }
