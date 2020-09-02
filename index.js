@@ -143,16 +143,16 @@ async function responseToDM(event) {
             link = $(td[3]).find("a")[0].attribs.href; // video URL
             size_num = parseFloat(size);
             //if the size is less than the size threshold (maximum file size that can be sent via Twilio's Sandbox), continue
-            if (size.indexOf("KB") !== -1 || size.indexOf(" B") !== -1 || size_num < size_threshold) {
+            if (size.indexOf("KB") !== -1 || size_num < size_threshold) {
               return false;
             }
           });
         });
-        console.log(quality,size,link,`VIDEO CAN BE SENT ${size.indexOf("KB") !== -1 || size.indexOf(" B") !== -1 || size_num < size_threshold}`);
+        console.log(quality,size,link,`VIDEO CAN BE SENT ${size.indexOf("KB") !== -1 || size_num < size_threshold}`);
         if (link === undefined) { //if link was not a twitter link with a video
           await sendMessage(message, oAuthConfig, "This link was invalid.");
         } 
-        else if (!(size.indexOf("KB") !== -1 || size.indexOf(" B") !== -1 || size_num < size_threshold)) { //if all 3 file sizes were too large to send
+        else if (!(size.indexOf("KB") !== -1 || size_num < size_threshold)) { //if all 3 file sizes were too large to send
           await sendMessage(message, oAuthConfig, "This video is too large to send.");
         } 
         else { //if video can be sent to Whatsapp
