@@ -140,7 +140,7 @@ async function responseToDM(event) {
             link = $(td[3]).find("a")[0].attribs.href; // video URL
             size_num = parseFloat(size);
             //if the size is less than the size threshold (maximum file size that can be sent via Twilio's Sandbox), continue
-            if (size.indexOf("KB") !== -1 || size_num < size_threshold) {
+            if (size.indexOf("KB") !== -1 || size.indexOf(" B ") !== -1 || size_num < size_threshold) {
               return false;
             }
           });
