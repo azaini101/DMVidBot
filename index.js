@@ -80,8 +80,7 @@ async function responseToDM(event) {
 
   
   if (senderMessage.toLowerCase() === "help") { //if user has typed the help command
-    await sendMessage(message, oAuthConfig, `For this bot, all you need to do is DM it any tweet with a video, and we'll send you the link! The iOS link will direct you to savetweetvid.com. 
-    Then, simply hold the download button and download the linked file. Enjoy!`);
+    await sendMessage(message, oAuthConfig, `For this bot, all you need to do is DM it any tweet with a video, and we'll send you the link! The iOS link will direct you to savetweetvid.com. Then, simply hold the download button and download the linked file. Enjoy!`);
   }
   else if (senderMessage.substring(0, 4) === "http") { //if user has sent a link
 
