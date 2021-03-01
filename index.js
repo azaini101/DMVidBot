@@ -79,12 +79,7 @@ async function responseToDM(event) {
   console.log(`${senderScreenName} says ${senderMessage}`);
 
   
-  if (senderMessage[0] === "!") { // If user is setting their phone number
-    handleToNumber[senderScreenName] = senderMessage.substring(1);
-    jsonfile.writeFileSync(file, handleToNumber)
-    await sendMessage(message, oAuthConfig, `Saved ${handleToNumber[senderScreenName]} for ${senderScreenName}!`);
-  }
-  else if (senderMessage.toLowerCase() === "help") { //if user has typed the help command
+  if (senderMessage.toLowerCase() === "help") { //if user has typed the help command
     await sendMessage(message, oAuthConfig, `There are 4 main steps to get started with DMVidBot!
     \n1) Add the following number as a contact on WhatsApp: +14155238886
     \n2) On WhatsApp, send that contact the following message: join continent-complete
@@ -94,11 +89,6 @@ async function responseToDM(event) {
     \nOne final note: make sure you send the actual tweet with the video, not a quote of the tweet`);
   }
   else if (senderMessage.substring(0, 4) === "http") { //if user has sent a link
-
-    if (handleToNumber[senderScreenName] === undefined) { //if user's number has not been added
-      await sendMessage(message, oAuthConfig, `We don't know your number yet. Type ! directly followed by your number. (ex: !+13131234567)`);
-      return;
-    }
 
     if(senderMessage.indexOf(" ") !== -1){ //if user has sent more than just the link itself
       await sendMessage(message, oAuthConfig, `Make sure you send just the tweet on its own.`);
@@ -148,27 +138,11 @@ async function responseToDM(event) {
             }
           });
         });
-        console.log(quality,size,link,`VIDEO CAN BE SENT ${size.indexOf("KB") !== -1 || size.indexOf(" B") !== -1 || size_num < size_threshold}`);
         if (link === undefined) { //if link was not a twitter link with a video
           await sendMessage(message, oAuthConfig, "This link was invalid.");
-        } 
-        else if (!(size.indexOf("KB") !== -1 || size.indexOf(" B") !== -1 || size_num < size_threshold)) { //if all 3 file sizes were too large to send
-          await sendMessage(message, oAuthConfig, "This video is too large to send.");
-        } 
+        }
         else { //if video can be sent to Whatsapp
-          console.log(quality,size,link,`VIDEO CAN BE SENT ${size.indexOf("KB") !== -1 || size_num < size_threshold}`);
-          client.messages
-            .create({
-              from: "whatsapp:+14155238886",
-              to: `whatsapp:${handleToNumber[senderScreenName]}`,
-              mediaUrl: link,
-            })
-            .then(async (res) => {
-              await sendMessage(message, oAuthConfig, `Your video has been sent to WhatsApp at ${handleToNumber[senderScreenName]}!`);
-            })
-            .catch((err) => {
-              console.log(err);
-            })
+          await sendMessage(message, oAuthConfig, `Go to the following link to download your video! ${link}`);
         }
       });
       res.on("error", function (error) {
