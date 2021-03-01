@@ -80,13 +80,8 @@ async function responseToDM(event) {
 
   
   if (senderMessage.toLowerCase() === "help") { //if user has typed the help command
-    await sendMessage(message, oAuthConfig, `There are 4 main steps to get started with DMVidBot!
-    \n1) Add the following number as a contact on WhatsApp: +14155238886
-    \n2) On WhatsApp, send that contact the following message: join continent-complete
-    \n3) Add your number to our contact list by DM'ing us ! directly followed by your number
-    \n****Steps 1-3 only need to be done once!***
-    \n4) Send us whatever tweet with a video you'd like to save, and we'll send that over to your Whatsapp!
-    \nOne final note: make sure you send the actual tweet with the video, not a quote of the tweet`);
+    await sendMessage(message, oAuthConfig, `For this bot, all you need to do is DM it any tweet with a video, and we'll send you the link! The iOS link will direct you to savetweetvid.com. 
+    Then, simply hold the download button and download the linked file. Enjoy!`);
   }
   else if (senderMessage.substring(0, 4) === "http") { //if user has sent a link
 
@@ -106,6 +101,7 @@ async function responseToDM(event) {
         hostname: "www.savetweetvid.com",
         path: `/downloader?url=${t_link}`,
       };
+      var stv_link = `www.savetweetvid.com/downloader?url=${t_link}`
     /*Calls savetweetvid.com's post request html return*/
       var req = https.request(options, async function (res) {
       var chunks = [];
@@ -132,17 +128,13 @@ async function responseToDM(event) {
             size = td[2].children[0].data; // file size
             link = $(td[3]).find("a")[0].attribs.href; // video URL
             size_num = parseFloat(size);
-            //if the size is less than the size threshold (maximum file size that can be sent via Twilio's Sandbox), continue
-            if (size.indexOf("KB") !== -1 || size.indexOf(" B") !== -1 || size_num < size_threshold) {
-              return false;
-            }
           });
         });
         if (link === undefined) { //if link was not a twitter link with a video
           await sendMessage(message, oAuthConfig, "This link was invalid.");
         }
         else { //if video can be sent to Whatsapp
-          await sendMessage(message, oAuthConfig, `Go to the following link to download your video! ${link}`);
+          await sendMessage(message, oAuthConfig, `Android: ${link}\niOS: ${stv_link}`);
         }
       });
       res.on("error", function (error) {
