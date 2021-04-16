@@ -32,6 +32,19 @@ async function markAsRead(messageId, senderId, auth) {
   await post(requestConfig);
 }
 
+async function getSize(link) {
+  var size;
+  request({
+    url: link,
+    method: "HEAD"
+  }, function(err, res, body) {
+    size = res.headers['content-length'];
+    console.log(size `Within function fun getSize`);
+    return size;
+  });
+  console.log(size `Within function getSize`);
+}
+
 async function sendMessage(message, auth, reply) {
   const requestConfig = {
     url: "https://api.twitter.com/1.1/direct_messages/events/new.json",
@@ -126,7 +139,6 @@ async function responseToDM(event) {
         var link;
         var quality;
         var size;
-        var size_num;
         let size_threshold = 16;
         /*Scrapes the html returned and reads the values of the downloadable links, as well as their size in MB.*/
         $("table").each((i, e) => {
@@ -136,11 +148,11 @@ async function responseToDM(event) {
           $(tr).each((j, tr_tag) => {
             let td = $(tr_tag).find("td");
             quality = td[0].children[0].data; // file quality
-            size = td[2].children[0].data; // file size
             link = $(td[3]).find("a")[0].attribs.href; // video URL
-            size_num = parseFloat(size);
+            size = await getSize(link);
+            console.log(size `Within loop`)
             //if the size is greater than the size threshold (maximum file size that can be sent via Twilio's Sandbox), continue
-            if (size.indexOf("KB") !== -1 || size_num < size_threshold) {
+            if (size < size_threshold) {
               return false;
             }
           });
@@ -148,11 +160,11 @@ async function responseToDM(event) {
         if (link === undefined) { //if link was not a twitter link with a video
           await sendMessage(message, oAuthConfig, "This link was invalid.");
         } 
-        else if (!(size.indexOf("KB") !== -1 || size_num < size_threshold)) { //if all 3 file sizes were too large to send
+        else if (size > size_threshold) { //if all 3 file sizes were too large to send
           await sendMessage(message, oAuthConfig, "This video is too large to send.");
         } 
         else { //if video can be sent to Whatsapp
-          console.log(quality,size,link,`VIDEO CAN BE SENT ${size.indexOf("KB") !== -1 || size_num < size_threshold}`);
+          console.log(quality,size,link,`VIDEO CAN BE SENT ${size < size_threshold}`);
           client.messages
             .create({
               from: "whatsapp:+14155238886",
