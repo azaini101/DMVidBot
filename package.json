@@ -1,0 +1,22 @@
+{
+  "name": "dmvideobot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.3",
+    "dotenv": "^8.2.0",
+    "follow-redirects": "^1.13.0",
+    "jsonfile": "^6.0.1",
+    "mongoose": "^6.0.6",
+    "newrelic": "^8.0.0",
+    "twilio": "^3.60.0",
+    "twitter-autohook": "^1.7.2"
+  }
+}
